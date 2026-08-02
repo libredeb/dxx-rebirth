@@ -379,10 +379,33 @@ static window_event_result gc_send_axis_button_event(unsigned button, event_type
 
 }
 
+static bool dpad_shares_axis(const SDL_ControllerAxisEvent *const cae)
+{
+	auto *const gc = SDL_GameControllerFromInstanceID(cae->which);
+	if (!gc)
+		return false;
+	static constexpr SDL_GameControllerButton dpad_buttons[] = {
+		SDL_CONTROLLER_BUTTON_DPAD_UP,
+		SDL_CONTROLLER_BUTTON_DPAD_DOWN,
+		SDL_CONTROLLER_BUTTON_DPAD_LEFT,
+		SDL_CONTROLLER_BUTTON_DPAD_RIGHT
+	};
+	for (auto btn : dpad_buttons)
+	{
+		const auto bind = SDL_GameControllerGetBindForButton(gc, btn);
+		if (bind.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && bind.value.axis == cae->axis)
+			return true;
+	}
+	return false;
+}
+
 window_event_result gc_axisbutton_handler(const SDL_ControllerAxisEvent *const cae)
 {
 	const auto axis = cae->axis;
 	if (axis >= GC_NUM_AXES)
+		return window_event_result::ignored;
+
+	if (dpad_shares_axis(cae))
 		return window_event_result::ignored;
 
 	const auto button = GC_AXIS_BUTTON_START + (axis * 2);

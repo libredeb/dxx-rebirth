@@ -178,11 +178,19 @@ void event_poll_state::process_event_batch(const std::ranges::subrange<const SDL
 			case SDL_JOYBUTTONUP:
 				if (CGameArg.CtlNoJoystick)
 					continue;
+#if SDL_MAJOR_VERSION == 2
+				if (SDL_GameControllerFromInstanceID(event.jbutton.which))
+					continue;
+#endif
 				result = joy_button_handler(&event.jbutton);
 				break;
 			case SDL_JOYAXISMOTION:
 				if (CGameArg.CtlNoJoystick)
 					continue;
+#if SDL_MAJOR_VERSION == 2
+				if (SDL_GameControllerFromInstanceID(event.jaxis.which))
+					continue;
+#endif
 #if DXX_MAX_BUTTONS_PER_JOYSTICK || DXX_MAX_HATS_PER_JOYSTICK
 				highest_result = std::max(joy_axisbutton_handler(&event.jaxis), highest_result);
 #endif
@@ -191,6 +199,10 @@ void event_poll_state::process_event_batch(const std::ranges::subrange<const SDL
 			case SDL_JOYHATMOTION:
 				if (CGameArg.CtlNoJoystick)
 					continue;
+#if SDL_MAJOR_VERSION == 2
+				if (SDL_GameControllerFromInstanceID(event.jhat.which))
+					continue;
+#endif
 				result = joy_hat_handler(&event.jhat);
 				break;
 			case SDL_JOYBALLMOTION:
